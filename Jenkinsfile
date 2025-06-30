@@ -37,14 +37,14 @@ pipeline {
     post {
         success {
             slackSend (
-                channel: '#build-status',
+                channel: '#all-jenkins',
                 message: "✅ Build and push successful for ${IMAGE_NAME}:${IMAGE_TAG}",
                 color: 'good'
             )
         }
         failure {
             slackSend (
-                channel: '#build-status',
+                channel: '#all-jenkins',
                 message: "❌ Build failed for ${IMAGE_NAME}:${IMAGE_TAG}",
                 color: 'danger'
             )
