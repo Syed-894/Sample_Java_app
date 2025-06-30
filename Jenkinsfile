@@ -27,7 +27,8 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry("${NEXUS_REPO}", "${DOCKER_CREDENTIALS_ID}") {
-                        dockerImage.push()
+                         dockerImage.push("${IMAGE_TAG}")
+                         dockerImage.push("latest")
                     }
                 }
             }
