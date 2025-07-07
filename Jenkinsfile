@@ -1,8 +1,13 @@
 pipeline {
-    agent any
+    agent { label 'docker-agent' }
+
+    parameters {
+        string(name: 'TAG', defaultValue: 'latest', description: 'Docker image tag')
+    }
+
     environment {
         IMAGE_NAME = 'sample-node-app'
-        IMAGE_TAG = "${BUILD_NUMBER}"
+        IMAGE_TAG = "${params.TAG}"
         NEXUS_REPO = 'http://localhost:8082/repository/docker-hosted'
         DOCKER_CREDENTIALS_ID = 'nexus-docker-creds'
     }
@@ -14,20 +19,13 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {       
+        stage('Build Docker Image') {
             steps {
                 script {
-                    dockerImage = docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
-                }
-            }
-        }
-
-        stage('Push to Nexus') {
-            steps {
-                script {
+                    def dockerImage = docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
                     docker.withRegistry("${NEXUS_REPO}", "${DOCKER_CREDENTIALS_ID}") {
-                         dockerImage.push("${IMAGE_TAG}")
-                         dockerImage.push("latest")
+                        dockerImage.push("${IMAGE_TAG}")
+                        dockerImage.push("latest")
                     }
                 }
             }
@@ -36,18 +34,10 @@ pipeline {
 
     post {
         success {
-            slackSend (
-                channel: '#all-jenkins',
-                message: "✅ Build and push successful for ${IMAGE_NAME}:${IMAGE_TAG}",
-                color: 'good'
-            )
+            echo "✅ Build succeeded!"
         }
         failure {
-            slackSend (
-                channel: '#all-jenkins',
-                message: "❌ Build failed for ${IMAGE_NAME}:${IMAGE_TAG}",
-                color: 'danger'
-            )
+            echo "❌ Build failed!"
         }
     }
 }
